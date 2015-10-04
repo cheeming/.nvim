@@ -13,6 +13,7 @@ Plugin 'VundleVim/Vundle.vim'
 
 " Keep Plugin commands between vundle#begin/end.
 " plugin on GitHub repo
+Plugin 'vim-scripts/Lucius'
 
 
 " All of your Plugins must be added before the following line
@@ -29,3 +30,54 @@ filetype plugin indent on    " required
 "
 " see :h vundle for more details or wiki for FAQ
 " Put your non-Plugin stuff after this line
+
+
+""""""""""""""""""
+" STANDARD SETUP "
+""""""""""""""""""
+syntax enable
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+set expandtab
+set autoindent
+set incsearch
+set hlsearch
+set number
+set ruler
+set wrap
+
+
+colorscheme lucius
+LuciusBlack
+
+
+"""""""""""""
+" SHORTCUTS "
+"""""""""""""
+" file operations
+:map ,ffs :FufFile<CR>
+:map ,fo <C-w>f
+" python tools
+:map ,pyf :!pyflakes %<CR>
+" git
+:map ,gb :!git blame %<CR>
+:map ,gd :!git diff %<CR>
+" textual helpers
+:map ,c :s/^/#/<CR>
+:map ,C :s/^#//<CR>
+" scratch buffer
+:map ,sb :Sscratch<CR>
+" diff helpers
+:map ,iw :set diffopt+=iwhite<CR>
+
+
+"""""""""
+" CTAGS "
+"""""""""
+" use with ctags to jump to definition
+:map ,b g<C-]>
+:map ,B <C-W>g<C-]>
+
+" for manual run
+:map ,ct :let x = system("ctags --languages=python --python-kinds=-i --exclude=build --exclude=src --exclude=binary -R . `cat .ctags_paths` &")<CR>
