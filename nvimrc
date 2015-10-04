@@ -14,6 +14,8 @@ Plugin 'VundleVim/Vundle.vim'
 " Keep Plugin commands between vundle#begin/end.
 " plugin on GitHub repo
 Plugin 'vim-scripts/Lucius'
+Plugin 'jelera/vim-javascript-syntax'
+Plugin 'scrooloose/syntastic'
 
 
 " All of your Plugins must be added before the following line
@@ -46,6 +48,7 @@ set hlsearch
 set number
 set ruler
 set wrap
+set mouse=
 
 
 colorscheme lucius
