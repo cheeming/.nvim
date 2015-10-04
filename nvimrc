@@ -16,6 +16,7 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'vim-scripts/Lucius'
 Plugin 'jelera/vim-javascript-syntax'
 Plugin 'scrooloose/syntastic'
+Plugin 'hynek/vim-python-pep8-indent'
 
 
 " All of your Plugins must be added before the following line
