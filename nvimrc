@@ -52,7 +52,7 @@ set mouse=
 
 
 colorscheme lucius
-LuciusBlack
+LuciusDarkLowContrast
 
 
 """""""""""""
@@ -84,3 +84,9 @@ LuciusBlack
 
 " for manual run
 :map ,ct :let x = system("ctags --languages=python --python-kinds=-i --exclude=build --exclude=src --exclude=binary -R . `cat .ctags_paths` &")<CR>
+
+
+"""""""""""""
+" Syntastic "
+"""""""""""""
+let g:syntastic_javascript_checkers = ["eslint"]
