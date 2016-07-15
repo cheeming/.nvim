@@ -2,7 +2,12 @@ set nocompatible              " be iMproved, required
 filetype off                  " required
 
 " set the runtime path to include Vundle and initialize
-set rtp+=~/.nvim/bundle/Vundle.vim
+set rtp+=~/.config/nvim/bundle/Vundle.vim
+
+" WARNING: The vim config file path for new nvim has changed
+" this is the old one
+"set rtp+=~/.nvim/bundle/Vundle.vim
+
 call vundle#begin()
 " alternatively, pass a path where Vundle should install plugins
 "call vundle#begin('~/some/path/here')
