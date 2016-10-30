@@ -22,6 +22,7 @@ For Syntastic
         npm install -g eslint
         eslint --init
 
+    * When you initialize eslint, it is best to customise it for each project.
     * You probably need the following ```rules``` to work well with JSX and React:
 
              "react/jsx-uses-react": "error",
