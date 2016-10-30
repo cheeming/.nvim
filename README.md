@@ -1,6 +1,7 @@
 Config for NVIM
 ===============
-This is my new Vim config which I will use for neovim
+This is my new Vim config which I will use for neovim.
+But it also works for vim (last tested Vim 7.4).
 
 We are using Vundle to manage the plugins,
 so you might need to run this in terminal:
