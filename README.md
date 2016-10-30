@@ -22,6 +22,11 @@ For Syntastic
         npm install -g eslint
         eslint --init
 
+    * You probably need the following ```rules``` to work well with JSX and React:
+
+             "react/jsx-uses-react": "error",
+             "react/jsx-uses-vars": "error",
+
     * Also read https://www.npmjs.com/package/eslint-plugin-react for additional configs
 
  * Run ```:help syntastic-checkers``` in vim for more information about supported checkers
