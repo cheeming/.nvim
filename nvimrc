@@ -23,6 +23,10 @@ Plugin 'jelera/vim-javascript-syntax'
 Plugin 'scrooloose/syntastic'
 Plugin 'hynek/vim-python-pep8-indent'
 
+"Plugin 'flowtype/vim-flow', {
+"		\ 'autoload': {
+"        \     'filetypes': 'javascript'
+"        \ }}
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -55,6 +59,8 @@ set number
 set ruler
 set wrap
 set mouse=
+set cursorline
+set cursorcolumn
 
 
 colorscheme lucius
