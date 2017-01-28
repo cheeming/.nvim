@@ -22,6 +22,7 @@ Plugin 'vim-scripts/Lucius'
 Plugin 'jelera/vim-javascript-syntax'
 Plugin 'scrooloose/syntastic'
 Plugin 'hynek/vim-python-pep8-indent'
+Plugin 'ctrlpvim/ctrlp.vim'
 
 "Plugin 'flowtype/vim-flow', {
 "		\ 'autoload': {
@@ -103,3 +104,12 @@ LuciusDarkLowContrast
 """""""""""""
 let g:syntastic_javascript_checkers = ["eslint"]
 let g:syntastic_javascript_eslint_exec = "eslint_d"
+let g:syntastic_python_checkers = ['flake8']  " use flake8 since it is faster
+
+"""""""""""""
+" ctrlp.vim "
+"""""""""""""
+
+:map ,F :CtrlP<CR>
+let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
+
