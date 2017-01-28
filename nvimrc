@@ -23,6 +23,7 @@ Plugin 'jelera/vim-javascript-syntax'
 Plugin 'scrooloose/syntastic'
 Plugin 'hynek/vim-python-pep8-indent'
 Plugin 'ctrlpvim/ctrlp.vim'
+Plugin 'elixir-lang/vim-elixir'
 
 "Plugin 'flowtype/vim-flow', {
 "		\ 'autoload': {
