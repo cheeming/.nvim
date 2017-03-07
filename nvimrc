@@ -20,7 +20,8 @@ Plugin 'VundleVim/Vundle.vim'
 " plugin on GitHub repo
 Plugin 'vim-scripts/Lucius'
 Plugin 'jelera/vim-javascript-syntax'
-Plugin 'scrooloose/syntastic'
+"Plugin 'scrooloose/syntastic'
+Plugin 'w0rp/ale'
 Plugin 'hynek/vim-python-pep8-indent'
 Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'elixir-lang/vim-elixir'
@@ -103,9 +104,9 @@ LuciusDarkLowContrast
 """""""""""""
 " Syntastic "
 """""""""""""
-let g:syntastic_javascript_checkers = ["eslint"]
-let g:syntastic_javascript_eslint_exec = "eslint_d"
-let g:syntastic_python_checkers = ['flake8']  " use flake8 since it is faster
+"let g:syntastic_javascript_checkers = ["eslint"]
+"let g:syntastic_javascript_eslint_exec = "eslint_d"
+"let g:syntastic_python_checkers = ['flake8']  " use flake8 since it is faster
 
 """""""""""""
 " ctrlp.vim "
