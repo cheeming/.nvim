@@ -64,6 +64,7 @@ set wrap
 set mouse=
 set cursorline
 set cursorcolumn
+set backspace=indent,eol,start " backspace over everything in insert mode
 
 
 colorscheme lucius
