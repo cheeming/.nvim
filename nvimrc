@@ -25,6 +25,8 @@ Plugin 'w0rp/ale'
 Plugin 'hynek/vim-python-pep8-indent'
 Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'elixir-lang/vim-elixir'
+Plugin 'kchmck/vim-coffee-script'
+
 
 "Plugin 'flowtype/vim-flow', {
 "		\ 'autoload': {
@@ -54,6 +56,10 @@ syntax enable
 set tabstop=4
 set softtabstop=4
 set shiftwidth=4
+
+" change it for JS
+autocmd Filetype javascript setlocal tabstop=2 softtabstop=2 shiftwidth=2
+
 set expandtab
 set autoindent
 set incsearch
@@ -90,6 +96,9 @@ LuciusDarkLowContrast
 " diff helpers
 :map ,iw :set diffopt+=iwhite<CR>
 
+" save output of command into new buffer
+:command! -nargs=* -complete=shellcmd R new | setlocal buftype=nofile bufhidden=hide noswapfile | r !<args>
+
 
 """""""""
 " CTAGS "
@@ -101,6 +110,11 @@ LuciusDarkLowContrast
 " for manual run
 :map ,ct :let x = system("ctags --languages=python --python-kinds=-i --exclude=build --exclude=src --exclude=binary -R . `cat .ctags_paths` &")<CR>
 
+"""""""
+" ALE "
+"""""""
+let g:ale_javascript_eslint_executable = ["eslint_d"]
+:map ,ll :lopen<CR>
 
 """""""""""""
 " Syntastic "
