@@ -2,7 +2,7 @@ set nocompatible              " be iMproved, required
 filetype off                  " required
 
 " set the runtime path to include Vundle and initialize
-set rtp+=~/.config/nvim/bundle/Vundle.vim
+set rtp+=~/configs/.nvim/bundle/Vundle.vim
 
 " WARNING: The vim config file path for new nvim has changed
 " this is the old one
@@ -26,7 +26,7 @@ Plugin 'hynek/vim-python-pep8-indent'
 Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'elixir-lang/vim-elixir'
 Plugin 'kchmck/vim-coffee-script'
-
+Plugin 'fatih/vim-go'
 
 "Plugin 'flowtype/vim-flow', {
 "		\ 'autoload': {
