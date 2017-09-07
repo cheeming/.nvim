@@ -29,8 +29,8 @@ shared_examples_for "vim" do
     before { vim.feedkeys '0ggipass' }
 
     it "does not indent" do
-      proposed_indent.should == 0
       indent.should == 0
+      proposed_indent.should == 0
     end
 
     it "does not indent when using '=='" do
@@ -161,65 +161,38 @@ shared_examples_for "vim" do
     end
   end
 
-  describe "when after an '(' that is followed by an unfinished string" do
-    before { vim.feedkeys 'itest("""' }
-
-    it "it does not indent the next line" do
-      vim.feedkeys '\<CR>'
-      proposed_indent.should == 0
-      indent.should == 0
-    end
-
-    it "with contents it does not indent the next line" do
-      vim.feedkeys 'string_contents\<CR>'
-      proposed_indent.should == 0
-      indent.should == 0
+  describe "when line is empty inside a block" do
+    it "is indented like the previous line" do
+      vim.feedkeys 'idef a():\<CR>1\<CR>\<CR>2\<ESC>kcc'
+      indent.should == shiftwidth
     end
   end
 
-  describe "when after assigning an unfinished string" do
-    before { vim.feedkeys 'itest = """' }
-
-    it "it does not indent the next line" do
-      vim.feedkeys '\<CR>'
-      proposed_indent.should == 0
+  describe "when an empty line is after empty line / before non-empty" do
+    it "is indented like the next line" do
+      vim.feedkeys 'idef a():\<CR>1\<CR>\<CR>\<CR>2\<ESC><<kcc'
       indent.should == 0
     end
   end
 
-  describe "when after assigning an unfinished string" do
-    before { vim.feedkeys 'i    test = """' }
-
-    it "it does not indent the next line" do
-      vim.feedkeys '\<CR>'
-      proposed_indent.should == 0
-      indent.should == 0
+  describe "when an empty line is after empty line / before non-empty (nested)" do
+    it "is indented like the next line" do
+      vim.feedkeys 'idef a():\<CR>1\<CR>\<CR>\<CR>\<ESC>0i\<TAB>2\<ESC>kcc'
+      indent.should == shiftwidth
     end
   end
 
-  describe "when after assigning a finished string" do
-    before { vim.feedkeys 'i    test = ""' }
-
-    it "it does indent the next line" do
-      vim.feedkeys '\<CR>'
-      proposed_indent.should == 4
-      indent.should == 4
-    end
-
-    it "and writing a new string, it does indent the next line" do
-      vim.feedkeys '\<CR>""'
-      proposed_indent.should == 4
-      indent.should == 4
+  describe "when line is empty inside a block following multi-line statement" do
+    it "is indented like the previous line" do
+      vim.feedkeys 'idef a():\<CR>x = (1 +\<CR>2)\<CR>\<CR>y\<ESC>kcc'
+      indent.should == shiftwidth
     end
   end
 
-  describe "when after a docstring" do
-    before { vim.feedkeys 'i    """' }
-
-    it "it does indent the next line" do
-      vim.feedkeys '\<CR>'
-      proposed_indent.should == 4
-      indent.should == 4
+  describe "when line is empty inside a block following stop statement" do
+    it "is indented like the previous line minus shiftwidth" do
+      vim.feedkeys 'iif x:\<CR>if y:\<CR>pass\<CR>\<CR>z\<ESC>kcc'
+      indent.should == shiftwidth
     end
   end
 
@@ -353,6 +326,23 @@ shared_examples_for "vim" do
      end
   end
 
+  describe "when an 'if' contains a try-except" do
+     before {
+       vim.feedkeys 'iif x:\<CR>try:\<CR>pass\<CR>except:\<CR>pass\<CR>'
+       indent.should == shiftwidth
+     }
+     it "an 'else' should be indented to the try" do
+       vim.feedkeys 'else:'
+       indent.should == shiftwidth
+       proposed_indent.should == shiftwidth
+     end
+     it "an 'else' should keep the indent of the 'if'" do
+       vim.feedkeys 'else:\<ESC><<'
+       indent.should == 0
+       proposed_indent.should == 0
+     end
+  end
+
   describe "when a 'for' is followed by" do
      before { vim.feedkeys 'i\<TAB>\<TAB>for x in y:\<CR>' }
      it "an 'else', it lines up with the 'for'" do
@@ -406,6 +396,14 @@ shared_examples_for "vim" do
      end
   end
 
+  describe "when an else is used inside of a nested if" do
+    before { vim.feedkeys 'iif foo:\<CR>\<TAB>if bar:\<CR>\<TAB>\<TAB>pass\<CR>' }
+    it "indents an else to the inner if" do
+      vim.feedkeys 'else:'
+      indent.should == shiftwidth * 2
+    end
+  end
+
   describe "when jedi-vim call signatures are used" do
     before { vim.command 'syn match jediFunction "JEDI_CALL_SIGNATURE" keepend extend' }
 
@@ -419,26 +417,100 @@ shared_examples_for "vim" do
       indent.should == shiftwidth * 2
     end
   end
+end
 
-  def shiftwidth
-    @shiftwidth ||= vim.echo("exists('*shiftwidth') ? shiftwidth() : &sw").to_i
+shared_examples_for "multiline strings" do
+  before(:each) {
+    # clear buffer
+    vim.normal 'gg"_dG'
+
+    # Insert two blank lines.
+    # The first line is a corner case in this plugin that would shadow the
+    # correct behaviour of other tests. Thus we explicitly jump to the first
+    # line when we require so.
+    vim.feedkeys 'i\<CR>\<CR>\<ESC>'
+  }
+
+  describe "when after an '(' that is followed by an unfinished string" do
+    before { vim.feedkeys 'itest("""' }
+
+    it "it indents the next line" do
+      vim.feedkeys '\<CR>'
+      expected_proposed, expected_indent = multiline_indent(0, shiftwidth)
+      proposed_indent.should == expected_proposed
+      indent.should == expected_indent
+    end
+
+    it "with contents it indents the second line to the parenthesis" do
+      vim.feedkeys 'second line\<CR>'
+      expected_proposed, expected_indent = multiline_indent(0, 5)
+      proposed_indent.should == expected_proposed
+      indent.should == expected_indent
+    end
   end
-  def tabstop
-    @tabstop ||= vim.echo("&tabstop").to_i
+
+  describe "when after assigning an unfinished string" do
+    before { vim.feedkeys 'itest = """' }
+
+    it "it indents the next line" do
+      vim.feedkeys '\<CR>'
+      expected_proposed, expected_indent = multiline_indent(0, shiftwidth)
+      proposed_indent.should == expected_proposed
+      indent.should == expected_indent
+    end
   end
-  def indent
-    vim.echo("indent('.')").to_i
+
+  describe "when after assigning an unfinished string" do
+    before { vim.feedkeys 'i    test = """' }
+
+    it "it indents the next line" do
+      vim.feedkeys '\<CR>'
+      expected_proposed, expected_indent = multiline_indent(4, shiftwidth + 4)
+      proposed_indent.should == expected_proposed
+      indent.should == expected_indent
+    end
   end
-  def previous_indent
-    pline = vim.echo("line('.')").to_i - 1
-    vim.echo("indent('#{pline}')").to_i
+
+  describe "when after assigning a finished string" do
+    before { vim.feedkeys 'i    test = ""' }
+
+    it "it does indent the next line" do
+      vim.feedkeys '\<CR>'
+      indent.should == 4
+    end
+
+    it "and writing a new string, it does indent the next line" do
+      vim.feedkeys '\<CR>""'
+      indent.should == 4
+    end
   end
-  def proposed_indent
-    line = vim.echo("line('.')")
-    col = vim.echo("col('.')")
-    indent_value = vim.echo("GetPythonPEPIndent(line('.'))").to_i
-    vim.command("call cursor(#{line}, #{col})")
-    return indent_value
+
+  describe "when after a docstring" do
+    before { vim.feedkeys 'i    """' }
+    it "it does indent the next line to the docstring" do
+      vim.feedkeys '\<CR>'
+      indent.should == 4
+      proposed_indent.should == 4
+    end
+  end
+
+  describe "when after a docstring with contents" do
+    before { vim.feedkeys 'i    """First line' }
+    it "it does indent the next line to the docstring" do
+      vim.feedkeys '\<CR>'
+      indent.should == 4
+      proposed_indent.should == 4
+    end
+  end
+
+  describe "when breaking a string after opening parenthesis" do
+    before { vim.feedkeys 'i    foo("""bar<Left><Left><Left>' }
+    it "it does indent the next line as after an opening multistring" do
+      vim.feedkeys '\<CR>'
+      expected_proposed, expected_indent = multiline_indent(4, 4 + shiftwidth)
+      indent.should == expected_indent
+      proposed_indent.should == expected_proposed
+    end
   end
 end
 
@@ -446,14 +518,72 @@ describe "vim when using width of 4" do
   before {
     vim.command("set sw=4 ts=4 sts=4 et")
   }
-
   it_behaves_like "vim"
 end
 
-describe "vim when using width of 8" do
+describe "vim when using width of 3" do
   before {
-    vim.command("set sw=8 ts=8 sts=8 et")
+    vim.command("set sw=3 ts=3 sts=3 et")
+  }
+  it_behaves_like "vim"
+end
+
+describe "vim when not using python_pep8_indent_multiline_string" do
+  before {
+    vim.command("set sw=4 ts=4 sts=4 et")
+    vim.command("unlet! g:python_pep8_indent_multiline_string")
+  }
+  it_behaves_like "multiline strings"
+end
+
+describe "vim when using python_pep8_indent_multiline_first=0" do
+  before {
+    vim.command("set sw=4 ts=4 sts=4 et")
+    vim.command("let g:python_pep8_indent_multiline_string=0")
+  }
+  it_behaves_like "multiline strings"
+end
+
+describe "vim when using python_pep8_indent_multiline_string=-1" do
+  before {
+    vim.command("set sw=4 ts=4 sts=4 et")
+    vim.command("let g:python_pep8_indent_multiline_string=-1")
+  }
+  it_behaves_like "multiline strings"
+end
+
+describe "vim when using python_pep8_indent_multiline_string=-2" do
+  before {
+    vim.command("set sw=4 ts=4 sts=4 et")
+    vim.command("let g:python_pep8_indent_multiline_string=-2")
+  }
+  it_behaves_like "multiline strings"
+end
+
+describe "vim for cython" do
+  before {
+    vim.command "enew"
+    vim.command "set ft=cython"
+    vim.command "runtime indent/python.vim"
+
+    # Insert two blank lines.
+    # The first line is a corner case in this plugin that would shadow the
+    # correct behaviour of other tests. Thus we explicitly jump to the first
+    # line when we require so.
+    vim.feedkeys 'i\<CR>\<CR>\<ESC>'
   }
 
-  it_behaves_like "vim"
+  describe "when using a cdef function definition" do
+      it "indents shiftwidth spaces" do
+          vim.feedkeys 'icdef long_function_name(\<CR>arg'
+          indent.should == shiftwidth * 2
+      end
+  end
+
+  describe "when using a cpdef function definition" do
+      it "indents shiftwidth spaces" do
+          vim.feedkeys 'icpdef long_function_name(\<CR>arg'
+          indent.should == shiftwidth * 2
+      end
+  end
 end
