@@ -1,6 +1,7 @@
 " PEP8 compatible Python indent file
 " Language:         Python
-" Maintainer:       Hynek Schlawack <hs@ox.cx>
+" Maintainer:       Daniel Hahler <https://daniel.hahler.de/>
+" Prev Maintainer:  Hynek Schlawack <hs@ox.cx>
 " Prev Maintainer:  Eric Mc Sween <em@tomcom.de> (address invalid)
 " Original Author:  David Bustos <bustos@caltech.edu> (address invalid)
 " License:          CC0
@@ -9,6 +10,7 @@
 " Written in 2004 by David Bustos <bustos@caltech.edu>
 " Maintained from 2004-2005 by Eric Mc Sween <em@tomcom.de>
 " Maintained from 2013 by Hynek Schlawack <hs@ox.cx>
+" Maintained from 2017 by Daniel Hahler <https://daniel.hahler.de/>
 "
 " To the extent possible under law, the author(s) have dedicated all copyright
 " and related and neighboring rights to this software to the public domain
@@ -18,29 +20,35 @@
 " <http://creativecommons.org/publicdomain/zero/1.0/>.
 
 " Only load this indent file when no other was loaded.
-if exists("b:did_indent")
+if exists('b:did_indent')
     finish
 endif
 let b:did_indent = 1
 
-setlocal expandtab
 setlocal nolisp
 setlocal autoindent
 setlocal indentexpr=GetPythonPEPIndent(v:lnum)
 setlocal indentkeys=!^F,o,O,<:>,0),0],0},=elif,=except
-setlocal tabstop=4
-setlocal softtabstop=4
-setlocal shiftwidth=4
+
+if !exists('g:python_pep8_indent_multiline_string')
+    let g:python_pep8_indent_multiline_string = 0
+endif
 
 let s:maxoff = 50
 let s:block_rules = {
             \ '^\s*elif\>': ['if', 'elif'],
-            \ '^\s*else\>': ['if', 'elif', 'for', 'try', 'except'],
             \ '^\s*except\>': ['try', 'except'],
             \ '^\s*finally\>': ['try', 'except', 'else']
             \ }
+let s:block_rules_multiple = {
+            \ '^\s*else\>': ['if', 'elif', 'for', 'try', 'except'],
+            \ }
 let s:paren_pairs = ['()', '{}', '[]']
-let s:control_statement = '^\s*\(class\|def\|if\|while\|with\|for\|except\)\>'
+if &filetype ==# 'pyrex' || &filetype ==# 'cython'
+    let b:control_statement = '\v^\s*(class|def|if|while|with|for|except|cdef|cpdef)>'
+else
+    let b:control_statement = '\v^\s*(class|def|if|while|with|for|except)>'
+endif
 let s:stop_statement = '^\s*\(break\|continue\|raise\|return\|pass\)\>'
 
 " Skip strings and comments. Return 1 for chars to skip.
@@ -74,7 +82,7 @@ if exists('*shiftwidth')
     endfunction
 else
     function! s:sw()
-        return &sw
+        return &shiftwidth
     endfunction
 endif
 
@@ -119,7 +127,7 @@ endfunction
 function! s:find_start_of_multiline_statement(lnum)
     let lnum = a:lnum
     while lnum > 0
-        if getline(lnum - 1) =~ '\\$'
+        if getline(lnum - 1) =~# '\\$'
             let lnum = prevnonblank(lnum - 1)
         else
             let [paren_lnum, _] = s:find_opening_paren(lnum)
@@ -132,22 +140,34 @@ function! s:find_start_of_multiline_statement(lnum)
     endwhile
 endfunction
 
-" Find the block starter that matches the current line
-function! s:find_start_of_block(lnum, types)
+" Find possible indent(s) of the block starter that matches the current line.
+function! s:find_start_of_block(lnum, types, multiple)
+    let r = []
+    let types = copy(a:types)
     let re = '\V\^\s\*\('.join(a:types, '\|').'\)\>'
-
     let lnum = a:lnum
     let last_indent = indent(lnum) + 1
     while lnum > 0 && last_indent > 0
-        if indent(lnum) < last_indent
-            if getline(lnum) =~# re
-                return lnum
-            endif
+        let indent = indent(lnum)
+        if indent < last_indent
+            for type in types
+                let re = '\v^\s*'.type.'>'
+                if getline(lnum) =~# re
+                    if !a:multiple
+                        return [indent]
+                    endif
+                    if index(r, indent) == -1
+                        let r += [indent]
+                    endif
+                    " Remove any handled type, e.g. 'if'.
+                    call remove(types, index(types, type))
+                endif
+            endfor
             let last_indent = indent(lnum)
         endif
         let lnum = prevnonblank(lnum - 1)
     endwhile
-    return 0
+    return r
 endfunction
 
 " Is "expr" true for every position in "lnum", beginning at "start"?
@@ -162,7 +182,7 @@ function! s:match_expr_on_line(expr, lnum, start, ...)
     let r = 1
     for i in range(a:start, end)
         call cursor(a:lnum, i)
-        if !(eval(a:expr) || text[i-1] =~ '\s')
+        if !(eval(a:expr) || text[i-1] =~# '\s')
             let r = 0
             break
         endif
@@ -182,7 +202,7 @@ function! s:indent_like_opening_paren(lnum)
 
     let nothing_after_opening_paren = s:match_expr_on_line(
                 \ s:skip_after_opening_paren, paren_lnum, paren_col+1)
-    let starts_with_closing_paren = getline(a:lnum) =~ '^\s*[])}]'
+    let starts_with_closing_paren = getline(a:lnum) =~# '^\s*[])}]'
 
     if nothing_after_opening_paren
         if starts_with_closing_paren
@@ -198,7 +218,7 @@ function! s:indent_like_opening_paren(lnum)
     " If this line is the continuation of a control statement
     " indent further to distinguish the continuation line
     " from the next logical line.
-    if text =~# s:control_statement && res == base + s:sw()
+    if text =~# b:control_statement && res == base + s:sw()
         return base + s:sw() * 2
     else
         return res
@@ -208,20 +228,32 @@ endfunction
 " Match indent of first block of this type.
 function! s:indent_like_block(lnum)
     let text = getline(a:lnum)
+    for [multiple, block_rules] in [
+                \ [0, s:block_rules],
+                \ [1, s:block_rules_multiple]]
+        for [line_re, blocks] in items(block_rules)
+            if text !~# line_re
+                continue
+            endif
 
-    for [line_re, blocks] in items(s:block_rules)
-        if text !~# line_re
-            continue
-        endif
+            let indents = s:find_start_of_block(a:lnum - 1, blocks, multiple)
+            if !len(indents)
+                return -1
+            endif
+            if len(indents) == 1
+                return indents[0]
+            endif
 
-        let lnum = s:find_start_of_block(a:lnum - 1, blocks)
-        if lnum > 0
-            return indent(lnum)
-        else
-            return -1
-        endif
+            " Multiple valid indents, e.g. for 'else' with both try and if.
+            let indent = indent(a:lnum)
+            if index(indents, indent) != -1
+                " The indent is valid, keep it.
+                return indent
+            endif
+            " Fallback to the first/nearest one.
+            return indents[0]
+        endfor
     endfor
-
     return -2
 endfunction
 
@@ -244,22 +276,22 @@ function! s:indent_like_previous_line(lnum)
 
     " Search for final colon that is not inside something to be ignored.
     while 1
-        let curpos = getpos(".")[2]
+        let curpos = getpos('.')[2]
         if curpos == 1 | break | endif
-        if eval(s:skip_special_chars) || text[curpos-1] =~ '\s'
+        if eval(s:skip_special_chars) || text[curpos-1] =~# '\s'
             normal! h
             continue
-        elseif text[curpos-1] == ':'
+        elseif text[curpos-1] ==# ':'
             return base + s:sw()
         endif
         break
     endwhile
 
-    if text =~ '\\$' && !ignore_last_char
+    if text =~# '\\$' && !ignore_last_char
         " If this line is the continuation of a control statement
         " indent further to distinguish the continuation line
         " from the next logical line.
-        if getline(start) =~# s:control_statement
+        if getline(start) =~# b:control_statement
             return base + s:sw() * 2
         endif
 
@@ -267,25 +299,38 @@ function! s:indent_like_previous_line(lnum)
         return base + s:sw()
     endif
 
+    let empty = getline(a:lnum) =~# '^\s*$'
+
+    " Current and prev line are empty, next is not -> indent like next.
+    if empty && a:lnum > 1 &&
+          \ (getline(a:lnum - 1) =~# '^\s*$') &&
+          \ !(getline(a:lnum + 1) =~# '^\s*$')
+      return indent(a:lnum + 1)
+    endif
+
     " If the previous statement was a stop-execution statement or a pass
     if getline(start) =~# s:stop_statement
         " Remove one level of indentation if the user hasn't already dedented
-        if indent(a:lnum) > base - s:sw()
+        if empty || current > base - s:sw()
             return base - s:sw()
         endif
         " Otherwise, trust the user
         return -1
     endif
 
-    " If this line is dedented and the number of indent spaces is valid
-    " (multiple of the indentation size), trust the user
-    let dedent_size = current - base
-    if dedent_size < 0 && current % s:sw() == 0
+    if !empty && s:is_dedented_already(current, base)
         return -1
     endif
 
     " In all other cases, line up with the start of the previous statement.
     return base
+endfunction
+
+" If this line is dedented and the number of indent spaces is valid
+" (multiple of the indentation size), trust the user.
+function! s:is_dedented_already(current, base)
+    let dedent_size = a:current - a:base
+    return (dedent_size < 0 && a:current % s:sw() == 0) ? 1 : 0
 endfunction
 
 " Is the syntax at lnum (and optionally cnum) a python string?
@@ -298,7 +343,7 @@ function! s:is_python_string(lnum, ...)
     let cols = a:0 ? type(a:1) != type([]) ? [a:1] : a:1 : range(1, linelen)
     for cnum in cols
         if match(map(synstack(a:lnum, cnum),
-                    \ 'synIDattr(v:val,"name")'), 'python\S*String') == -1
+                    \ "synIDattr(v:val, 'name')"), 'python\S*String') == -1
             return 0
         end
     endfor
@@ -306,28 +351,67 @@ function! s:is_python_string(lnum, ...)
 endfunction
 
 function! GetPythonPEPIndent(lnum)
-
     " First line has indent 0
     if a:lnum == 1
         return 0
     endif
 
+    let line = getline(a:lnum)
+    let prevline = getline(a:lnum-1)
+
     " Multilinestrings: continous, docstring or starting.
-    if s:is_python_string(a:lnum)
+    if s:is_python_string(a:lnum-1, len(prevline))
+                \ && (s:is_python_string(a:lnum, 1)
+                \     || match(line, '^\%("""\|''''''\)') != -1)
+
+        " Indent closing quotes as the line with the opening ones.
+        let match_quotes = match(line, '^\s*\zs\%("""\|''''''\)')
+        if match_quotes != -1
+            " closing multiline string
+            let quotes = line[match_quotes:(match_quotes+2)]
+            let pairpos = searchpairpos(quotes, '', quotes, 'b')
+            if pairpos[0] != 0
+                return indent(pairpos[0])
+            else
+                " TODO: test to cover this!
+            endif
+        endif
+
         if s:is_python_string(a:lnum-1)
             " Previous line is (completely) a string.
-            return s:indent_like_previous_line(a:lnum)
+            return indent(a:lnum-1)
         endif
 
-        if match(getline(a:lnum-1), '^\s*\%("""\|''''''\)') != -1
+        if match(prevline, '^\s*\%("""\|''''''\)') != -1
             " docstring.
-            return s:indent_like_previous_line(a:lnum)
+            return indent(a:lnum-1)
         endif
 
-        if s:is_python_string(a:lnum-1, len(getline(a:lnum-1)))
-            " String started in previous line.
-            return 0
+        let indent_multi = get(b:, 'python_pep8_indent_multiline_string',
+                    \ get(g:, 'python_pep8_indent_multiline_string', 0))
+        if match(prevline, '\v%("""|'''''')$') != -1
+            " Opening multiline string, started in previous line.
+            if (&autoindent && indent(a:lnum) == indent(a:lnum-1))
+                        \ || match(line, '\v^\s+$') != -1
+                " <CR> with empty line or to split up 'foo("""bar' into
+                " 'foo("""' and 'bar'.
+                if indent_multi == -2
+                    return indent(a:lnum-1) + s:sw()
+                endif
+                return indent_multi
+            endif
         endif
+
+        " Keep existing indent.
+        if match(line, '\v^\s*\S') != -1
+            return -1
+        endif
+
+        if indent_multi != -2
+            return indent_multi
+        endif
+
+        return s:indent_like_opening_paren(a:lnum)
     endif
 
     " Parens: If we can find an open parenthesis/bracket/brace, line up with it.
