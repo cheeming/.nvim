@@ -59,6 +59,7 @@ set shiftwidth=4
 
 " change it for JS
 autocmd Filetype javascript setlocal tabstop=2 softtabstop=2 shiftwidth=2
+autocmd Filetype ruby setlocal tabstop=2 softtabstop=2 shiftwidth=2
 
 set expandtab
 set autoindent
@@ -95,6 +96,9 @@ LuciusDarkLowContrast
 :map ,sb :Sscratch<CR>
 " diff helpers
 :map ,iw :set diffopt+=iwhite<CR>
+" go
+:map ,gr :GoRun %<CR>
+:map ,gb :GoBuild %<CR>
 
 " save output of command into new buffer
 :command! -nargs=* -complete=shellcmd R new | setlocal buftype=nofile bufhidden=hide noswapfile | r !<args>
