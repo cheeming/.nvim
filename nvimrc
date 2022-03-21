@@ -110,7 +110,7 @@ let mapleader = ","
 :map ,sb :Sscratch<CR>
 
 " diff helpers
-:map ,iw :set diffopt+=iwhite<CR>
+":map ,iw :set diffopt+=iwhite<CR>
 
 " go
 :map ,gor :GoRun %<CR>
