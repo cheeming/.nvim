@@ -19,13 +19,25 @@ Plugin 'VundleVim/Vundle.vim'
 " Keep Plugin commands between vundle#begin/end.
 " plugin on GitHub repo
 Plugin 'vim-scripts/Lucius'
-Plugin 'jelera/vim-javascript-syntax'
+
+"For TypeScript
+Plugin 'prabirshrestha/async.vim'
+Plugin 'prabirshrestha/vim-lsp'
+Plugin 'prabirshrestha/asyncomplete.vim'
+Plugin 'prabirshrestha/asyncomplete-lsp.vim'
+Plugin 'mattn/vim-lsp-settings'
+
+"Plugin 'jelera/vim-javascript-syntax'
+"Plugin 'pangloss/vim-javascript'
 "Plugin 'scrooloose/syntastic'
-Plugin 'w0rp/ale'
+
+"Plugin 'w0rp/ale'
 Plugin 'hynek/vim-python-pep8-indent'
 Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'elixir-lang/vim-elixir'
-Plugin 'kchmck/vim-coffee-script'
+
+
+"Plugin 'kchmck/vim-coffee-script'
 Plugin 'fatih/vim-go'
 
 "Plugin 'flowtype/vim-flow', {
@@ -155,3 +167,8 @@ let g:ale_javascript_eslint_executable = ["eslint_d"]
 :map ,F :CtrlP<CR>
 let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
 
+""""""""""""""
+" TypeScript "
+""""""""""""""
+:map ,tsd :LspDocumentDiagnostics<CR>
+:map ,tsr :LspReferences<CR>
