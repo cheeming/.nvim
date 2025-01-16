@@ -1,3 +1,17 @@
+" WARNING: If using nvim need to point config file to be ~/.config/nvim/init.vim
+
+" NOTE: https://github.com/neovim/neovim/issues/20484
+if has ('nvim')
+    let g:python3_host_prog = $HOME . '/nvimvenv/bin/python3'
+    if exists('g:loaded_python3_provider')
+      unlet g:loaded_python3_provider
+      try
+        runtime autoload/provider/python3.vim
+      catch
+      endtry
+    endif
+endif
+
 set nocompatible              " be iMproved, required
 filetype off                  " required
 
@@ -21,11 +35,12 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'vim-scripts/Lucius'
 
 "For TypeScript
-Plugin 'prabirshrestha/async.vim'
 Plugin 'prabirshrestha/vim-lsp'
+Plugin 'mattn/vim-lsp-settings'
+
+Plugin 'prabirshrestha/async.vim'
 Plugin 'prabirshrestha/asyncomplete.vim'
 Plugin 'prabirshrestha/asyncomplete-lsp.vim'
-Plugin 'mattn/vim-lsp-settings'
 
 "Plugin 'jelera/vim-javascript-syntax'
 "Plugin 'pangloss/vim-javascript'
@@ -35,10 +50,11 @@ Plugin 'mattn/vim-lsp-settings'
 Plugin 'hynek/vim-python-pep8-indent'
 Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'elixir-lang/vim-elixir'
-
-
 "Plugin 'kchmck/vim-coffee-script'
+"
 Plugin 'fatih/vim-go'
+
+Plugin 'hashivim/vim-terraform'
 
 "Plugin 'flowtype/vim-flow', {
 "		\ 'autoload': {
