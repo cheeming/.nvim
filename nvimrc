@@ -183,8 +183,15 @@ let g:ale_javascript_eslint_executable = ["eslint_d"]
 :map ,F :CtrlP<CR>
 let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
 
-""""""""""""""
-" TypeScript "
-""""""""""""""
-:map ,tsd :LspDocumentDiagnostics<CR>
-:map ,tsr :LspReferences<CR>
+"""""""""""
+" vim-lsp "
+"""""""""""
+:map ,ld :LspPeekDefinition<CR>
+:map ,lD :LspDefinition<CR>
+:map ,lt :LspPeekTypeDefinition<CR>
+:map ,lT :LspTypeDefinition<CR>
+:map ,ldd :LspDocumentDiagnostics<CR>
+:map ,lddn :LspNextDiagnostic<CR>
+:map ,lddp :LspPreviousDiagnostic<CR>
+:map ,lR :LspReferences<CR>
+:map ,lh :LspHover<CR>
